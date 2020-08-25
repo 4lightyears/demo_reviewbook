@@ -13,8 +13,8 @@ class Review(db.Model):
     __tablename__ = 'review'
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     rating = db.Column(db.Integer, nullable=False)
-    body = db.Column(db.String(300))
-    book_name = db.Column(db.String(300))
+    body = db.Column(db.String())
+    book_name = db.Column(db.String())
     is_publish = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime(), nullable=False, server_default=db.func.now())
     updated_at = db.Column(db.DateTime(), nullable=False, server_default=db.func.now(), onupdate=db.func.now())
