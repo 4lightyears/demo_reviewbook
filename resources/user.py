@@ -66,8 +66,6 @@ class MeResource(Resource):
     @jwt_required
     def get(self):
         user = User.get_by_id(id=get_jwt_identity())
-        if not user:
-            return {'message':'user not found.'}, HTTPStatus.NOT_FOUND
         
         data = {
             'id': user.id,

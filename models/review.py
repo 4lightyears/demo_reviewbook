@@ -1,13 +1,5 @@
 from extensions import db
 
-review_list = []
-
-def get_last_id():
-    if review_list:
-        last_review = review_list[-1]
-    else:
-        return 1
-    return last_review.id + 1
 
 class Review(db.Model):
     __tablename__ = 'review'
@@ -18,13 +10,29 @@ class Review(db.Model):
     is_publish = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime(), nullable=False, server_default=db.func.now())
     updated_at = db.Column(db.DateTime(), nullable=False, server_default=db.func.now(), onupdate=db.func.now())
-    user_id = db.Column(db.Integer(), db.ForeignKey('user.id'))
-
-    @property
+    user_id = db.Column(db.Integer(), db.ForeignKey("user.id"))
+    
     def data(self):
         return {
             'id': self.id,
             'rating': self.rating,
             'body': self.body,
-            'book_name': self.book_name
+            'book_name': self.book_name,
+            'user_id': self.user_id
         }
+
+    @classmethod
+    def get_all_published(cls):
+        return cls.query.filter_by(is_publish=True).all()
+
+    @classmethod
+    def get_by_id(cls, review_id):
+        return cls.query.filter_by(id=review_id).first()
+    
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
