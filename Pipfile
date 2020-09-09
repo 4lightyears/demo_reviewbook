@@ -15,6 +15,7 @@ Flask-Migrate = "==2.5.2"
 psycopg2 = "*"
 passlib = "*"
 flask-jwt-extended = "*"
+marshmallow = "==2.19.5"
 
 [requires]
 python_version = "3.8"

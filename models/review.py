@@ -7,28 +7,23 @@ class Review(db.Model):
     rating = db.Column(db.Integer, nullable=False)
     body = db.Column(db.String())
     book_name = db.Column(db.String())
-    is_publish = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime(), nullable=False, server_default=db.func.now())
     updated_at = db.Column(db.DateTime(), nullable=False, server_default=db.func.now(), onupdate=db.func.now())
     user_id = db.Column(db.Integer(), db.ForeignKey("user.id"))
-    
-    def data(self):
-        return {
-            'id': self.id,
-            'rating': self.rating,
-            'body': self.body,
-            'book_name': self.book_name,
-            'user_id': self.user_id
-        }
 
     @classmethod
-    def get_all_published(cls):
-        return cls.query.filter_by(is_publish=True).all()
+    def get_all(cls):
+        all_queries = cls.query.all()
+        return all_queries
 
     @classmethod
     def get_by_id(cls, review_id):
         return cls.query.filter_by(id=review_id).first()
     
+    @classmethod
+    def get_all_by_user(cls, user_id):
+        return cls.query.filter_by(user_id=user_id).all()
+
     def save(self):
         db.session.add(self)
         db.session.commit()

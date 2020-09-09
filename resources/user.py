@@ -1,42 +1,39 @@
 from flask import request
 from flask_restful import Resource
 from http import HTTPStatus
+from flask_jwt_extended import get_jwt_identity, jwt_optional, jwt_required
 
 from models.user import User
 from utils import hash_password
-from flask_jwt_extended import get_jwt_identity, jwt_optional, jwt_required
+
+from models.user import User
+from models.review import Review
+
+from schemas.user import UserSchema
+from schemas.review import ReviewSchema
+
+user_schema = UserSchema()
+user_public_schema = UserSchema(exclude=('email',))
+review_list_schema = ReviewSchema(many=True)
 
 
 class UserListResource(Resource):
 
     def post(self):
         json_data = request.get_json()
-        username = json_data.get('username')
-        email = json_data.get('email')
-        non_hashed_password = json_data.get('password')
+        data, errors = user_schema.load(data=json_data)
+        if errors:
+            return {'message': 'Validation errors', 'errors': errors}, HTTPStatus.BAD_REQUEST
 
-        if User.get_by_username(username=username):
+        if User.get_by_username(username=data.get('username')):
             return {'message':'username already exists.'}, HTTPStatus.BAD_REQUEST
-        if User.get_by_email(email):
+        if User.get_by_email(email=data.get('email')):
             return {'message':'email already taken.'}, HTTPStatus.BAD_REQUEST
         
-        hashed_password = hash_password(non_hashed_password)
-
-        user = User(
-            username=username,
-            email=email,
-            password=hashed_password
-        )
-
+        user = User(**data)
         user.save()
 
-        data = {
-            'id': user.id,
-            'username': user.username,
-            'email': user.email
-        }
-
-        return data, HTTPStatus.CREATED
+        return user_schema.dump(user).data, HTTPStatus.CREATED
 
 
 class UserResource(Resource):
@@ -49,28 +46,27 @@ class UserResource(Resource):
 
         current_user = get_jwt_identity()
         if current_user == user.id:
-            return {
-                'id': user.id,
-                'username': user.username,
-                'email': user.email
-            }, HTTPStatus.OK
+            user_data = user_schema.dump(user).data
         else:
-            return {
-                'id': user.id,
-                'username': user.username
-            }, HTTPStatus.OK
-
+            user_data = user_public_schema.dump(user).data
+        
+        return user_data, HTTPStatus.OK
 
 class MeResource(Resource):
     
     @jwt_required
     def get(self):
         user = User.get_by_id(id=get_jwt_identity())
-        
-        data = {
-            'id': user.id,
-            'email': user.email,
-            'username': user.username,
-        }
-
+        data = user_schema.dump(user).data
         return data, HTTPStatus.OK
+
+class UserReviewListResource(Resource):
+    @jwt_optional
+    def get(self, username):
+        user = User.get_by_username(username=username)
+        if user is None:
+            return {'message': 'User not found'}, HTTPStatus.NOT_FOUND
+        
+        reviews = Review.get_all_by_user(user_id=user.id)
+        
+        return review_list_schema.dump(reviews).data, HTTPStatus.OK
