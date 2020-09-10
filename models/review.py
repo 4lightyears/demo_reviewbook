@@ -1,3 +1,5 @@
+from sqlalchemy import asc, desc, or_
+
 from extensions import db
 
 
@@ -12,8 +14,15 @@ class Review(db.Model):
     user_id = db.Column(db.Integer(), db.ForeignKey("user.id"))
 
     @classmethod
-    def get_all(cls):
-        all_queries = cls.query.all()
+    def get_all(cls, q, sort, order):
+        key = '%{keyword}%'.format(keyword=q)
+        if order == 'asc':
+            sort_type = asc(getattr(cls, sort))
+        else:
+            sort_type = desc(getattr(cls, sort))
+
+
+        all_queries = cls.query.filter(or_(cls.book_name.ilike(key), cls.body.ilike(key))).order_by(sort_type)
         return all_queries
 
     @classmethod

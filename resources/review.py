@@ -1,6 +1,8 @@
 from flask import request
 from flask_restful import Resource
 from http import HTTPStatus
+from webargs import fields
+from webargs.flaskparser import use_kwargs
 from flask_jwt_extended import get_jwt_identity, jwt_required, jwt_optional
 
 from models.review import Review
@@ -11,9 +13,16 @@ review_list_schema = ReviewSchema(many=True)
 
 
 class ReviewListResource(Resource):
-
-    def get(self):
-        reviews = Review.get_all()
+    @use_kwargs({
+        'q':fields.Str(missing=''), 
+        'sort': fields.Str(missing='created_at'),
+        'order': fields.Str(missing='desc')})
+    def get(self, q, sort, order):
+        if sort not in ['created_at', 'rating', 'book_name']:
+            sort = 'created_at'
+        if order not in ['asc', 'desc']:
+            order = 'desc'
+        reviews = Review.get_all(q=q, sort=sort, order=order)
         
         return review_list_schema.dump(reviews).data, HTTPStatus.OK
 
@@ -25,7 +34,7 @@ class ReviewListResource(Resource):
         if errors:
             return {'message': 'Validation error', 'error': errors}, HTTPStatus.BAD_REQUEST
 
-        review = Recipe(**data)
+        review = Review(**data)
         review.user_id = current_user
         review.save()
 

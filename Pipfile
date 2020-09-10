@@ -16,6 +16,7 @@ psycopg2 = "*"
 passlib = "*"
 flask-jwt-extended = "*"
 marshmallow = "==2.19.5"
+webargs = "==5.4.0"
 
 [requires]
 python_version = "3.8"
