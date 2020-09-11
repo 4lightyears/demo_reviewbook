@@ -10,6 +10,6 @@
 3. [Flask-SQLAlchemy](https://flask-sqlalchemy.palletsprojects.com/en/2.x/)
 4. [Flask-Migrate](https://flask-migrate.readthedocs.io/en/latest/)
 
-for a complete list of packages used, read **requirements.txt**
+for a complete list of packages used, refer **requirements.txt**
 
 
